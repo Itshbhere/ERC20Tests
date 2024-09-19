@@ -80,5 +80,15 @@ describe("ERC20", function () {
 
     })
 
+    it("should be able to send token from behalf of the approver", async function () {
+      const { erc20test, TransferAmount, signer, owner } = await loadFixture(deployERC20Tester)
+      await erc20test.approve(signer.address, BigInt(TransferAmount))
+      const Amount = BigInt(await erc20test.allowance(owner.address, signer.address))
+      const Equalizer = Amount + (await erc20test.balanceOf(signer.address))
+      await erc20test.connect(signer).transferFrom(owner.address, signer.address, TransferAmount)
+      expect(await erc20test.balanceOf(signer.address)).to.equal(Equalizer)
+
+    })
+
   })
 });

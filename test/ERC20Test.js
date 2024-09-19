@@ -20,7 +20,8 @@ describe("ERC20", function () {
     const erc20test = await ERC20Test.deploy();
     const AmountofOwner = BigInt(1000000) * BigInt(10) ** BigInt(decimals)
     const MintAmount = BigInt(100000)
-    return { erc20test, owner, signer, AmountofOwner, MintAmount };
+    const TransferAmount = BigInt(100000)
+    return { TransferAmount, erc20test, owner, signer, AmountofOwner, MintAmount };
   }
 
   describe("Deployment", function () {
@@ -42,7 +43,7 @@ describe("ERC20", function () {
 
       const { erc20test, owner, MintAmount } = await loadFixture(deployERC20Tester);
       const FinalResult = (await erc20test.balanceOf(owner)) + BigInt(MintAmount)
-      const Minting = await erc20test.mint(owner, MintAmount)
+      await erc20test.mint(owner, MintAmount)
       expect(await erc20test.balanceOf(owner)).to.equal(FinalResult)
     })
 
@@ -51,8 +52,32 @@ describe("ERC20", function () {
   describe("OwnerShip", function () {
     it("should transfer the ownership to other account ", async function () {
       const { erc20test, signer } = await loadFixture(deployERC20Tester);
-      const transferring = await erc20test.transferOwnership(signer)
+      await erc20test.transferOwnership(signer)
       expect(await erc20test.owner()).to.equal(signer)
+    })
+  })
+
+  describe("Tranfer Of Tokens ", function () {
+    it("should transfer the tokens from the sender to the receiver", async function () {
+      const { erc20test, TransferAmount, signer, owner } = await loadFixture(deployERC20Tester)
+      const TransferReceiver = await erc20test.balanceOf(signer)
+      const TransferSender = await erc20test.balanceOf(owner)
+
+      const AfterTransferReceiver = TransferReceiver + BigInt(TransferAmount)
+      const AfterTransferSender = TransferSender - BigInt(TransferAmount)
+
+      await erc20test.transfer(signer, BigInt(TransferAmount))
+
+      expect(await erc20test.balanceOf(signer)).to.equal(AfterTransferReceiver)
+      expect(await erc20test.balanceOf(owner)).to.equal(AfterTransferSender)
+
+    })
+
+    it("should approve the spender for specific amount", async function () {
+      const { erc20test, TransferAmount, signer, owner } = await loadFixture(deployERC20Tester)
+      await erc20test.approve(signer.address, BigInt(TransferAmount))
+      expect(await erc20test.allowance(owner, signer.address)).to.equal(BigInt(TransferAmount))
+
     })
 
   })

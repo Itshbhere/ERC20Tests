@@ -19,7 +19,8 @@ describe("ERC20", function () {
     const ERC20Test = await ethers.getContractFactory("ERC20Test");
     const erc20test = await ERC20Test.deploy();
     const AmountofOwner = BigInt(1000000) * BigInt(10) ** BigInt(decimals)
-    return { erc20test, owner, signer, AmountofOwner };
+    const MintAmount = BigInt(100000)
+    return { erc20test, owner, signer, AmountofOwner, MintAmount };
   }
 
   describe("Deployment", function () {
@@ -35,4 +36,24 @@ describe("ERC20", function () {
       expect(await erc20test.balanceOf(owner)).to.equal(AmountofOwner);
     });
   });
+  describe("Minting", function () {
+
+    it("should mint amount of tokens for the minter", async function () {
+
+      const { erc20test, owner, MintAmount } = await loadFixture(deployERC20Tester);
+      const FinalResult = (await erc20test.balanceOf(owner)) + BigInt(MintAmount)
+      const Minting = await erc20test.mint(owner, MintAmount)
+      expect(await erc20test.balanceOf(owner)).to.equal(FinalResult)
+    })
+
+  })
+
+  describe("OwnerShip", function () {
+    it("should transfer the ownership to other account ", async function () {
+      const { erc20test, signer } = await loadFixture(deployERC20Tester);
+      const transferring = await erc20test.transferOwnership(signer)
+      expect(await erc20test.owner()).to.equal(signer)
+    })
+
+  })
 });
